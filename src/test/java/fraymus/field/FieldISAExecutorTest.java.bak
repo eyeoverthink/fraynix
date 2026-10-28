@@ -1,0 +1,152 @@
+package fraymus.field;
+
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Test suite for Field-Based ISA Executor
+ */
+public class FieldISAExecutorTest {
+    
+    private final FieldISAExecutor executor = new FieldISAExecutor();
+    
+    @Test
+    public void testFLDI() {
+        Instruction instr = new Instruction(Instruction.FLDI, 0, 0, 0.5);
+        executor.execute(instr);
+        assertEquals(0.5, executor.getFieldRegister(0), 0.001);
+    }
+    
+    @Test
+    public void testFADD() {
+        executor.setFieldRegister(0, 0.3);
+        executor.setFieldRegister(1, 0.4);
+        Instruction instr = new Instruction(Instruction.FADD, 0, 1);
+        executor.execute(instr);
+        assertEquals(0.7, executor.getFieldRegister(0), 0.001);
+    }
+    
+    @Test
+    public void testFMUL() {
+        executor.setFieldRegister(0, 0.5);
+        executor.setFieldRegister(1, 0.8);
+        Instruction instr = new Instruction(Instruction.FMUL, 0, 1);
+        executor.execute(instr);
+        assertEquals(0.4, executor.getFieldRegister(0), 0.001);
+    }
+    
+    @Test
+    public void testFNOT() {
+        executor.setFieldRegister(0, 0.5);
+        Instruction instr = new Instruction(Instruction.FNOT, 0, 0);
+        executor.execute(instr);
+        assertEquals(-0.5, executor.getFieldRegister(0), 0.001);
+    }
+    
+    @Test
+    public void testFABS() {
+        executor.setFieldRegister(0, -0.7);
+        Instruction instr = new Instruction(Instruction.FABS, 0, 0);
+        executor.execute(instr);
+        assertEquals(0.7, executor.getFieldRegister(0), 0.001);
+    }
+    
+    @Test
+    public void testClamping() {
+        Instruction instr = new Instruction(Instruction.FLDI, 0, 0, 2.0);
+        executor.execute(instr);
+        assertEquals(1.0, executor.getFieldRegister(0), 0.001);
+        
+        instr = new Instruction(Instruction.FLDI, 1, 0, -2.0);
+        executor.execute(instr);
+        assertEquals(-1.0, executor.getFieldRegister(1), 0.001);
+    }
+    
+    @Test
+    public void testFCOL() {
+        executor.setFieldRegister(0, 0.8);
+        Instruction instr = new Instruction(Instruction.FCOL, 0, 0, 0.5);
+        executor.execute(instr);
+        assertEquals(1.0, executor.getFieldRegister(0), 0.001);
+        
+        executor.setFieldRegister(1, -0.8);
+        instr = new Instruction(Instruction.FCOL, 1, 0, 0.5);
+        executor.execute(instr);
+        assertEquals(-1.0, executor.getFieldRegister(1), 0.001);
+        
+        executor.setFieldRegister(2, 0.3);
+        instr = new Instruction(Instruction.FCOL, 2, 0, 0.5);
+        executor.execute(instr);
+        assertEquals(0.0, executor.getFieldRegister(2), 0.001);
+    }
+    
+    @Test
+    public void testFSUP() {
+        executor.setFieldRegister(0, 0.8);
+        executor.setFieldRegister(1, 0.2);
+        Instruction instr = new Instruction(Instruction.FSUP, 0, 1);
+        executor.execute(instr);
+        // With alpha=0.5: 0.5*0.8 + 0.5*0.2 = 0.5
+        assertEquals(0.5, executor.getFieldRegister(0), 0.001);
+    }
+    
+    @Test
+    public void testFSYN() {
+        executor.setFieldRegister(0, 0.5);
+        executor.setFieldRegister(1, 0.3);
+        Instruction instr = new Instruction(Instruction.FSYN, 0, 1, 0.5);
+        executor.execute(instr);
+        // 0.5 + 0.5*0.3 = 0.65
+        assertEquals(0.65, executor.getFieldRegister(0), 0.001);
+    }
+    
+    @Test
+    public void testFWEI() {
+        executor.setFieldRegister(0, 0.8);
+        Instruction instr = new Instruction(Instruction.FWEI, 0, 0, 0.5);
+        executor.execute(instr);
+        assertEquals(0.4, executor.getFieldRegister(0), 0.001);
+    }
+    
+    @Test
+    public void testFACT() {
+        executor.setFieldRegister(0, 0.5);
+        Instruction instr = new Instruction(Instruction.FACT, 0, 0);
+        executor.execute(instr);
+        // sigmoid(0.5) ≈ 0.622
+        assertTrue(Math.abs(executor.getFieldRegister(0) - 0.622) < 0.01);
+    }
+    
+    @Test
+    public void testInstructionEncoding() {
+        Instruction original = new Instruction(Instruction.FADD, 3, 5);
+        byte[] encoded = original.encode();
+        Instruction decoded = Instruction.decode(encoded);
+        
+        assertEquals(original.getOpcode(), decoded.getOpcode());
+        assertEquals(original.getRd(), decoded.getRd());
+        assertEquals(original.getRs(), decoded.getRs());
+    }
+    
+    @Test
+    public void testStatusFlags() {
+        executor.reset();
+        
+        // Set register to collapsed state
+        executor.setFieldRegister(0, 0.8);
+        executor.execute(new Instruction(Instruction.FCOL, 0, 0, 0.5));
+        
+        boolean[] flags = executor.getStatusFlags();
+        assertTrue(flags[0]); // Collapsed to +1
+    }
+    
+    @Test
+    public void testReset() {
+        executor.setFieldRegister(0, 0.5);
+        executor.setProgramCounter(100);
+        executor.reset();
+        
+        assertEquals(0.0, executor.getFieldRegister(0), 0.001);
+        assertEquals(0, executor.getProgramCounter());
+    }
+}
