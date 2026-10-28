@@ -8,6 +8,8 @@ obsidian/open-code-api.md
 obsidian/open-code-api.md.backup
 hs_err_pid*.log
 .akashic/blocks.dat
+brain_architecture/.brain_memory/
+brain_architecture/.northstar-kernel/
 target/
 build/
 out/

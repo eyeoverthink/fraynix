@@ -77,6 +77,7 @@ Requirements:
 
 - JDK 21 or newer
 - The Gradle wrapper in this folder (`gradlew.bat` on Windows, `./gradlew` on macOS and Linux)
+- The modules `settings.gradle` includes: `factory-runtime`, `factory-kernel`, `factory-models`, `sandbox`, and `brain_architecture`
 - Optional: [Ollama](https://ollama.com/) listening on `http://127.0.0.1:11434` for `ai`, Companion answers, and the Fraymus voice
 
 The wrapper is offline-friendly once the Gradle cache and the declared libraries are already on the machine.
@@ -317,7 +318,11 @@ Asset-Manager/
     index, companion, knowledge, surfaces, launchpad, ...
     assets/app.css            The dark operator theme
     assets/app.js             Page behavior and /api calls
-  brain_architecture/         Offline kernel sources
+  factory-runtime/            Gradle module on the boot classpath
+  factory-kernel/             Gradle module on the boot classpath
+  factory-models/             Included model module
+  sandbox/                    Included sandbox module
+  brain_architecture/         Offline kernel sources. Local memory under .brain_memory and .northstar-kernel stays on the machine
   docs/                       Operator notes and the screenshots in this README
   scripts/                    Local model, avatar, exodus, and genomics helpers
 ```
@@ -363,7 +368,8 @@ Avatar checks use stand-in capture scripts. Exodus checks boot a generated image
 
 - Ollama weights and the Carbon weight files
 - `.akashic/blocks.dat`, the multi-gigabyte local memory store
-- Private key material. `*.pem` is gitignored. API keys and OAuth client secrets are not in this snapshot; set them in the environment on your machine
+- Private key material. `*.pem` is gitignored. API keys and OAuth client secrets are not part of the published tree; set them in the environment on your machine
+- Local brain runtime state in `brain_architecture/.brain_memory` and `brain_architecture/.northstar-kernel`
 - Third-party textbooks that had been dropped in `attached_assets` for local reading
 - Build output, `.class` files, and `node_modules`
 
