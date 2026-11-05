@@ -665,6 +665,9 @@ public final class OfflineKernel implements AutoCloseable {
     }
 
     private SubstrateAdapter chooseAdapter(TaskEnvelope envelope) {
+        if (FraynixGptSubstrateAdapter.requestedBy(envelope)) {
+            return FraynixGptSubstrateAdapter.fromTask(configuration.getWorkspaceRoot(), envelope);
+        }
         if (envelope.requestsLocalModelRuntime()) {
             return localModelRuntimeAdapter;
         }

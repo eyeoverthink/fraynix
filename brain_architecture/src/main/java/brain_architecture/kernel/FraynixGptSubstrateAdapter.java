@@ -54,6 +54,33 @@ public final class FraynixGptSubstrateAdapter implements SubstrateAdapter {
         return ADAPTER_ID;
     }
 
+    /** True when the task asks for this substrate: strategy substrate=fraynix-gpt. */
+    public static boolean requestedBy(TaskEnvelope task) {
+        return ADAPTER_ID.equalsIgnoreCase(task.getStrategyMetadata().getOrDefault("substrate", ""));
+    }
+
+    /**
+     * Builds the adapter a task asks for. Needs strategy fraynix.classes (where the compiled FraynixGPT class is);
+     * fraynix.timeoutSeconds is optional (default 300).
+     */
+    public static FraynixGptSubstrateAdapter fromTask(Path workspaceRoot, TaskEnvelope task) {
+        Map<String, String> meta = task.getStrategyMetadata();
+        String classes = meta.get("fraynix.classes");
+        if (classes == null || classes.isBlank()) {
+            throw new IllegalArgumentException("substrate=fraynix-gpt needs strategy fraynix.classes");
+        }
+        long timeout = 300;
+        String t = meta.get("fraynix.timeoutSeconds");
+        if (t != null && !t.isBlank()) {
+            try {
+                timeout = Long.parseLong(t.trim());
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("fraynix.timeoutSeconds is not a number: " + t);
+            }
+        }
+        return new FraynixGptSubstrateAdapter(workspaceRoot, Path.of(classes), timeout);
+    }
+
     @Override
     public SubstrateSession loadContext(TaskEnvelope task, List<MemoryHit> context) {
         SubstrateSession session = new SubstrateSession(workspaceRoot);
