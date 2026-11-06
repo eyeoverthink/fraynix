@@ -52,7 +52,8 @@ public final class MissingMethodRepairTest {
 
             String updated = Files.readString(demoDir.resolve("UseTool.java"), StandardCharsets.UTF_8);
             assertTrue(updated.contains("private String buildValue()"), "Expected bounded buildValue stub");
-            assertTrue(updated.contains("return \"\";"), "Expected deterministic string default");
+            assertTrue(updated.contains("throw new UnsupportedOperationException("), "Expected placeholder to fail loudly, not return a silent default");
+            assertTrue(!updated.contains("return \"\";"), "Placeholder must not return a silent default");
 
             KernelRunResult repaired = kernel.runTask(task, ValidationSuite.empty());
             assertTrue(repaired.getVerifierResult().isSuccess(), "Expected workspace to verify after method repair");

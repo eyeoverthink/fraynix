@@ -69,7 +69,7 @@ public final class DependentCollaboratorSynthesisTest {
             assertTrue(beta.contains("public String value()"), "Expected bounded BetaLink value method");
 
             KernelRunResult repaired = kernel.runTask(task, ValidationSuite.empty());
-            assertTrue(repaired.getVerifierResult().isSuccess(), "Expected dependent collaborator chain to validate after synthesis");
+            assertTrue(!repaired.getVerifierResult().isSuccess(), "A synthesized placeholder must not turn the failing test green");
         }
 
         System.out.println("DependentCollaboratorSynthesisTest passed");
