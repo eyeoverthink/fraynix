@@ -908,11 +908,13 @@ public final class MutationProposalEngine {
                 builder.append("Object arg").append(i);
             }
             builder.append(") {").append(newline);
-            if (!"void".equals(method.returnType())) {
-                builder.append("        return ")
-                    .append(defaultLiteralForType(method.returnType(), availablePlans, plan.simpleName()))
-                    .append(';')
-                    .append(newline);
+            String collaborator = "void".equals(method.returnType())
+                ? null
+                : collaboratorConstructionLiteral(method.returnType(), availablePlans, plan.simpleName());
+            if (collaborator != null) {
+                builder.append("        return ").append(collaborator).append(';').append(newline);
+            } else {
+                builder.append(unimplementedBody(method.name())).append(newline);
             }
             builder.append("    }").append(newline);
         }
@@ -2325,6 +2327,12 @@ public final class MutationProposalEngine {
         return trimmed.contains(methodName + "(");
     }
 
+    // Generated members that have no real logic fail loudly instead of returning a silent default.
+    private static String unimplementedBody(String methodName) {
+        return "        throw new UnsupportedOperationException(\"Generated placeholder '" + methodName
+            + "' has no implementation; supply real logic.\");";
+    }
+
     private String buildMissingMethodStub(String methodName, int parameterCount, String inferredType, boolean staticContext) {
         String newline = System.lineSeparator();
         StringBuilder builder = new StringBuilder();
@@ -2340,9 +2348,7 @@ public final class MutationProposalEngine {
             builder.append("Object arg").append(i);
         }
         builder.append(") {").append(newline);
-        if (!"void".equals(inferredType)) {
-            builder.append("        return ").append(defaultLiteralForType(inferredType)).append(';').append(newline);
-        }
+        builder.append(unimplementedBody(methodName)).append(newline);
         builder.append("    }");
         return builder.toString();
     }

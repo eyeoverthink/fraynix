@@ -64,7 +64,8 @@ public final class FailingTestConstructionSynthesisTest {
             assertTrue(content.contains("public String value()"), "Expected String-returning method inferred from test");
 
             KernelRunResult repaired = kernel.runTask(task, ValidationSuite.empty());
-            assertTrue(repaired.getVerifierResult().isSuccess(), "Expected failing test to pass after bounded construction");
+            assertTrue(content.contains("throw new UnsupportedOperationException("), "Expected synthesized method to fail loudly");
+            assertTrue(!repaired.getVerifierResult().isSuccess(), "A synthesized placeholder must not turn the failing test green");
         }
 
         System.out.println("FailingTestConstructionSynthesisTest passed");
